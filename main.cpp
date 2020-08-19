@@ -1,5 +1,7 @@
 #include <SDL.h>
+#include <SDL_image.h>
 #include <stdio.h>
+#include <string>
 #include <cstring>
 #include <cmath>
 
@@ -8,15 +10,18 @@ const int SCREEN_HEIGHT = 480;
 
 bool init();
 bool loadMedia();
+SDL_Texture* loadTexture(SDL_Texture *, std::string);
 void close();
 
 SDL_Window * window = NULL;
 SDL_Renderer * renderer = NULL;
 SDL_Texture * displayTexture = NULL;
+SDL_Texture * guiSkin = NULL;
 SDL_Surface * canvas = NULL;
 SDL_Surface * floatingCanvas = NULL;
-SDL_Rect floatingCanvasRect;
 SDL_Surface * overlay = NULL;
+SDL_Rect canvasRect;
+SDL_Rect floatingCanvasRect;
 SDL_Rect overlayRect;
 
 int mouseX = 0;
@@ -54,33 +59,42 @@ bool init()
                 SDL_GetError() );
             return false;
         }
-        // SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
         
+        // Create display texture (the final "composite" of the 3 surfaces
+        // below, or what the user actually sees)
+        displayTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
+            SDL_TEXTUREACCESS_STATIC, SCREEN_WIDTH, SCREEN_HEIGHT);
+        
+        // Create surfaces for drawing operations
+        // The canvas where the user paints/draws pixels
         canvas = SDL_CreateRGBSurfaceWithFormat(NULL,
                                                 SCREEN_WIDTH, SCREEN_HEIGHT,
                                                 8, SDL_PIXELFORMAT_BGRA32);
         SDL_FillRect(canvas, NULL, SDL_MapRGB(canvas->format, 200, 190, 230));
+        canvasRect.x = 0;
+        canvasRect.y = 0;
+        canvasRect.w = SCREEN_WIDTH;
+        canvasRect.h = SCREEN_HEIGHT;
         
+        // The "canvas" where the user manipulates pasted/selected items
         floatingCanvas = SDL_CreateRGBSurfaceWithFormat(NULL,
-                                                200, 200,
+                                                100, 100,
                                                 8, SDL_PIXELFORMAT_BGRA32);
         SDL_FillRect(floatingCanvas, NULL, SDL_MapRGB(floatingCanvas->format, 0, 255, 0));
         floatingCanvasRect.x = 0;
         floatingCanvasRect.y = 0;
-        floatingCanvasRect.w = 200;
-        floatingCanvasRect.h = 200;
+        floatingCanvasRect.w = 100;
+        floatingCanvasRect.h = 100;
         
+        // The visualization for tools, like the rect. marquee's dashed lines
         overlay = SDL_CreateRGBSurfaceWithFormat(NULL,
-                                                100, 100,
+                                                50, 50,
                                                 8, SDL_PIXELFORMAT_BGRA32);
         SDL_FillRect(overlay, NULL, SDL_MapRGB(overlay->format, 255, 0, 0));
         overlayRect.x = 0;
         overlayRect.y = 0;
-        overlayRect.w = 100;
-        overlayRect.h = 100;
-        
-        displayTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
-            SDL_TEXTUREACCESS_STATIC, SCREEN_WIDTH, SCREEN_HEIGHT);
+        overlayRect.w = 50;
+        overlayRect.h = 50;
     }
     
     return true;
@@ -88,24 +102,58 @@ bool init()
 
 bool loadMedia()
 {
+    guiSkin = loadTexture(guiSkin, "res/skin.png");
+    if (guiSkin == NULL)
+    {
+        printf( "Failed to load GUI skin.\n" );
+		return false;
+    }
     // Load media here
     return true;
 }
 
+SDL_Texture* loadTexture(SDL_Texture * texture, std::string path)
+{
+    if (texture != NULL)
+    {
+        SDL_DestroyTexture(texture);
+    }
+    
+    SDL_Texture* newTexture = NULL;
+    SDL_Surface* loadedSurface = IMG_Load(path.c_str());
+    if (loadedSurface == NULL)
+    {
+        printf( "Unable to load image %s! SDL_image Error: %s\n", path.c_str(), IMG_GetError() );
+    }
+    else
+    {
+        SDL_SetColorKey( loadedSurface, SDL_TRUE, SDL_MapRGB( loadedSurface->format, 0xFF, 0, 0xFF ) );
+        newTexture = SDL_CreateTextureFromSurface(renderer, loadedSurface);
+        if (newTexture == NULL)
+        {
+            printf( "Unable to create texture from %s! SDL Error: %s\n", path.c_str(), SDL_GetError() );
+        }
+        SDL_FreeSurface( loadedSurface );
+    }
+    return newTexture;
+}
+
 void close()
 {
-    SDL_DestroyTexture(displayTexture);
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
     SDL_FreeSurface(canvas);
     SDL_FreeSurface(floatingCanvas);
     SDL_FreeSurface(overlay);
-    displayTexture = NULL;
-    renderer = NULL;
-    window = NULL;
+    SDL_DestroyTexture(guiSkin);
+    SDL_DestroyTexture(displayTexture);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
     canvas = NULL;
     floatingCanvas = NULL;
     overlay = NULL;
+    guiSkin = NULL;
+    displayTexture = NULL;
+    renderer = NULL;
+    window = NULL;
     
     SDL_Quit();
 }
@@ -164,7 +212,7 @@ int main(int argc, char * args[])
             SDL_Event event;
             while (isRunning)
             {
-                SDL_UpdateTexture(displayTexture, NULL, canvas->pixels, canvas->pitch);
+                SDL_UpdateTexture(displayTexture, &canvasRect, canvas->pixels, canvas->pitch);
                 SDL_UpdateTexture(displayTexture, &floatingCanvasRect, floatingCanvas->pixels, floatingCanvas->pitch);
                 SDL_UpdateTexture(displayTexture, &overlayRect, overlay->pixels, overlay->pitch);
                 
@@ -204,6 +252,8 @@ int main(int argc, char * args[])
                 
                 SDL_RenderClear(renderer);
                 SDL_RenderCopy(renderer, displayTexture, NULL, NULL);
+                SDL_Rect skinQuad = {100, 100, 128, 128};
+                SDL_RenderCopy(renderer, guiSkin, NULL, &skinQuad);
                 SDL_RenderPresent(renderer);
                 
                 oldMouseX = mouseX;
