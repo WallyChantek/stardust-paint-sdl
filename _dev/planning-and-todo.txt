@@ -1,0 +1,103 @@
+================================================================================
+= TODO LIST                                                                    =
+================================================================================
+
+- Stuff ------------------------------------------------------------------------
+
+[/] File IO
+  [x] Open
+  [x] Save As
+  [ ] Issue saving RGB(0,0,0) as transparent
+  [ ] Save
+    - Need to store active file handle
+  [ ] Error handling or whatever
+  [ ] Save progress bar (or indicator at least)
+    - "Background file input/output" needs to be enabled, otherwise the program
+      will freeze; which is more desirable?
+    - "File IO in Progress?" should be the correct conditional
+  [ ] Save/load fail notifications
+  [ ] Pop-up confirmation when trying to save as JPEG (Warning: This format will
+      reduce quality, etc.)
+  [ ] General clean-up and considerations
+[ ] Resizing canvas
+[ ] Scrollbars
+[ ] Replace active system buttons with active objects (widget behaviors?)
+[ ] Tools system
+[ ] UI Resizing
+[ ] Pop-up windows
+[ ] Bitmap fonts
+  - Look at BMP Font Writer for inspiration, especially the File > Font Info.
+[ ] Undo/redo
+  - Check out quick store, although it looks like it's only for a one-time undo
+
+--------------------------------------------------------------------------------
+
+================================================================================
+= PLANNING                                                                     =
+================================================================================
+
+- Tools ------------------------------------------------------------------------
+
+- Camera tool/system
+    - Right-side bar, under the color stuff, has 2 camera views
+    - These cameras can be set with the Camera tool (left-click for cam1, right
+      click for cam2)
+    - Camera views have an 'x' to remove the active camera (and return to "no
+      signal")
+    - Zooming, panning, etc. don't affect cameras after they've been placed
+    - Sidebar is resizable, cameras resize with it (no zoom, just display more
+      or less of the active cam area)
+- Lasso/polygonal select
+    - Lasso by default, hold shift for straights, how else it works i dunno
+- Pencil/brush tool
+    - 3 parameters
+        - Brush shape
+            - Bitmap file patterns stored in patterns folder
+                - Variable-color brushes: bitmap must contain only black & white
+                  pixels, can change the color of these brushes from within the
+                  program
+                - Static-color brushes: bitmap contains any color(s) other than
+                  black & white, cannot change the color of these brushes from
+                  within the program
+            - Temporary "stamper" brush that can be created from a selection
+                - Right click on selection > set as temp brush
+        - Brush size
+            - Even scales complex patterns
+        - Checkbox: Is pattern brush
+            - Determines whether the brush should smear or draw a clean pattern
+
+--------------------------------------------------------------------------------
+
+
+================================================================================
+= MEMORY PROFILING                                                             =
+================================================================================
+
+- Daily Log --------------------------------------------------------------------
+
+- Day 000: 13mb
+- Day 001: 14mb
+
+--------------------------------------------------------------------------------
+
+
+================================================================================
+= OTHER                                                                        =
+================================================================================
+
+- Help Text --------------------------------------------------------------------
+
+- Stardust Paint is freeware. If you've paid money for Stardust Paint, you
+  should absolutely demand a refund. If you like Stardust Paint, tell your
+  friends about it! Maybe give it to them as a Christmas present (but in that
+  case don't tell them it's free)!
+
+- "I will conquer the world with my tools" - Dr. Eggman
+  
+  Tools are an integral part of any painting experience. After all, you can't
+  paint without tools! Well, you can, but it's probably not as fulfilling. I've
+  tried to keep the toolset as straight-forward as possible, yet feature-filled
+  enough to be useful and get some real work done with.
+  Simple, yet powerful: that's the goal for Stardust Paint.
+
+--------------------------------------------------------------------------------
